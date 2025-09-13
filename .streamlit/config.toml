@@ -1,0 +1,8 @@
+# File: .streamlit/config.toml
+
+[theme]
+primaryColor="#FFA500"  # Oranye sebagai warna aksen utama
+backgroundColor="#0E1117"  # Latar belakang hitam kebiruan
+secondaryBackgroundColor="#1C2028" # Warna latar belakang sekunder yang sedikit lebih terang
+textColor="#FAFAFA" # Warna teks putih
+font="monospace" # Menggunakan font monospace

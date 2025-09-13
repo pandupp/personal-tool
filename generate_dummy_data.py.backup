@@ -1,0 +1,99 @@
+import sqlite3
+import random
+from datetime import datetime, timedelta
+import os
+from database import init_db
+
+DB_NAME = "trading_data.db"
+
+dummy_transactions = [
+    {'asset': 'DEPOSIT', 'type': 'DEPOSIT', 'quantity': 10000, 'price': 1.0},
+    {'asset': 'BTC', 'type': 'BUY', 'quantity': 0.05, 'price': 68000.0},
+    {'asset': 'ETH', 'type': 'BUY', 'quantity': 0.5, 'price': 3500.0},
+    {'asset': 'SOL', 'type': 'BUY', 'quantity': 10, 'price': 165.0},
+    {'asset': 'ETH', 'type': 'SELL', 'quantity': 0.1, 'price': 3650.0},
+    {'asset': 'BTC', 'type': 'BUY', 'quantity': 0.02, 'price': 65500.0},
+    {'asset': 'USDT', 'type': 'DEPOSIT', 'quantity': 2000, 'price': 1.0},
+    {'asset': 'SOL', 'type': 'BUY', 'quantity': 5, 'price': 150.0},
+    {'asset': 'ETH', 'type': 'BUY', 'quantity': 0.2, 'price': 3400.0},
+    {'asset': 'BTC', 'type': 'SELL', 'quantity': 0.03, 'price': 71000.0},
+]
+
+def generate_transaction_data():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    print("Menambahkan data dummy transaksi...")
+    for i, trx in enumerate(dummy_transactions):
+        timestamp = datetime.now() - timedelta(days=len(dummy_transactions) - i + 30)
+        asset, tr_type, quantity, price = trx['asset'], trx['type'], trx['quantity'], trx['price']
+        if tr_type == 'DEPOSIT': asset = 'USDT'; price = 1.0
+        cursor.execute(
+            "INSERT INTO transactions (timestamp, asset, type, quantity, price) VALUES (?, ?, ?, ?, ?)",
+            (timestamp, asset, tr_type, quantity, price)
+        )
+    conn.commit()
+    conn.close()
+    print(f"✅ Selesai! {len(dummy_transactions)} data transaksi berhasil dibuat.")
+
+def generate_history_data():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    print("Membuat data dummy untuk grafik...")
+    current_value = 11500 + random.uniform(-500, 500)
+    for i in range(30):
+        snapshot_date = datetime.now().date() - timedelta(days=30 - i)
+        cursor.execute("INSERT OR IGNORE INTO portfolio_history (snapshot_date, total_value_usd) VALUES (?, ?)", (snapshot_date, current_value))
+        current_value *= (1 + random.uniform(-0.03, 0.03))
+    conn.commit()
+    conn.close()
+    print("✅ Selesai! Data riwayat untuk 30 hari berhasil dibuat.")
+
+def generate_journal_data():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    journal_entries = [
+        {"trx_id": 2, "entry": "Harga BTC memantul dari support kuat di $68k.", "exit": "Target di $72k, stop loss di $67k.", "lesson": "Disiplin pada level support/resistance kunci seringkali berhasil."},
+        {"trx_id": 5, "entry": "Posisi BUY ETH sebelumnya sudah mencapai target profit.", "exit": "Menjual untuk merealisasikan keuntungan sesuai rencana.", "lesson": "Jangan serakah. Ambil profit sesuai rencana."},
+        {"trx_id": 10, "entry": "Posisi BUY BTC sudah profit besar.", "exit": "Menjual sebagian karena Fear & Greed Index menunjukkan 'Extreme Greed'.", "lesson": "Kurangi risiko saat pasar terlihat terlalu euforia."}
+    ]
+    print("Menambahkan data dummy jurnal...")
+    for entry in journal_entries:
+        cursor.execute(
+            "INSERT INTO trading_journal (transaction_id, entry_reason, exit_reason, lessons_learned) VALUES (?, ?, ?, ?)",
+            (entry['trx_id'], entry['entry'], entry['exit'], entry['lesson'])
+        )
+    conn.commit()
+    conn.close()
+    print(f"✅ Selesai! {len(journal_entries)} data jurnal berhasil dibuat.")
+
+def generate_watchlist_data():
+    """FUNGSI BARU: Mengisi daftar pantau dengan alamat-alamat wallet terkenal."""
+    watchlist_experts = [
+        {"label": "Vitalik Buterin (Ethereum Founder)", "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"},
+        {"label": "Justin Sun (Tron Founder)", "address": "0x3DdfA8eC3052539b6C9549F12cEA2C2A6cf47157"},
+        {"label": "a16z (Venture Capital)", "address": "0x05Ee846564D705a22678523249135b3c57842608"},
+        {"label": "Paradigm (Venture Capital)", "address": "0x4F2a105D31bA27A598336021645e75B106B3215f"},
+        {"label": "Machi Big Brother (NFT Whale)", "address": "0x020cA66C30beC2c4Fe3861a94E4DB4A498A35872"}
+    ]
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    print("Menambahkan data dummy watchlist...")
+    for expert in watchlist_experts:
+        cursor.execute(
+            "INSERT OR IGNORE INTO watched_wallets (address, label) VALUES (?, ?)",
+            (expert['address'], expert['label'])
+        )
+    conn.commit()
+    conn.close()
+    print(f"✅ Selesai! {len(watchlist_experts)} wallet expert berhasil ditambahkan.")
+
+if __name__ == "__main__":
+    if os.path.exists(DB_NAME):
+        os.remove(DB_NAME)
+        print(f"{DB_NAME} dihapus untuk reset.")
+    
+    init_db()
+    generate_transaction_data()
+    generate_history_data()
+    generate_journal_data()
+    generate_watchlist_data()
