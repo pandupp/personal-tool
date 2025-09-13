@@ -1,4 +1,6 @@
 import streamlit as st
+import nest_asyncio
+nest_asyncio.apply() 
 import pandas as pd
 import yfinance as yf
 from database import init_db, add_transaction, get_all_transactions, get_portfolio_summary, get_total_deposits, add_portfolio_snapshot, get_portfolio_history, add_journal_entry, get_journal_entries, add_watched_wallet, get_watched_wallets, remove_watched_wallet
